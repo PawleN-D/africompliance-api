@@ -5,7 +5,7 @@ import os
 # Add parent directory to path so we can import models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models import RiskFlags
+from api.models import RiskFlags
 import logging
 
 logger = logging.getLogger(__name__)
