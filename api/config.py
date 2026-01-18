@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     
     # Rate Limiting
     RATE_LIMIT_REQUESTS: int = 100
+    MAX_REQUESTS_PER_HOUR: int = 100  # Alias for compatibility
     RATE_LIMIT_WINDOW_SECONDS: int = 3600
     
     # CIPC API (for production)
