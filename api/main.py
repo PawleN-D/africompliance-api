@@ -284,4 +284,4 @@ async def calculate_trade_compliance(request: TradeTransaction):
             detail=f"Trade calculation failed: {str(e)}"
         )
 # For Vercel deployment
-handler = app
+app = app
