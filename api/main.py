@@ -2,18 +2,23 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime
+from api.services.trade_service import TradeComplianceService
 import uuid
 import logging
 
 from api.models import (
-    VerificationRequest, 
-    VerificationResponse, 
+    VerificationRequest,
+    VerificationResponse,
     VerificationStatus,
     Business,
     Director,
     RiskFlags,
-    ComplianceInfo,
-    Address
+    POPIACompliance,
+    Address,
+    TradeTransaction,
+    TradeComplianceResponse,
+    CalculationBreakdown,
+    ComplianceRequirement
 )
 from api.services.cipc_service import CIPCService
 from api.services.risk_scoring import RiskScoringService
@@ -45,6 +50,7 @@ app.add_middleware(
 # Initialize services
 cipc_service = CIPCService()
 risk_service = RiskScoringService()
+trade_service = TradeComplianceService() 
 
 # Simple rate limiting
 request_counts = {}
@@ -208,6 +214,74 @@ async def verify_business(request: VerificationRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Verification failed: {str(e)}"
+        )
+    
+@app.post("/v1/calculate/trade", response_model=TradeComplianceResponse)
+async def calculate_trade_compliance(request: TradeTransaction):
+    """
+    Calculate duties, VAT, and compliance requirements for cross-border trade.
+    
+    This endpoint helps logistics companies and customs brokers:
+    - Calculate estimated duties and VAT
+    - Identify required documentation
+    - Understand trade agreements (SADC, EAC, ECOWAS)
+    - Get compliance notes and warnings
+    
+    Perfect for: Cross-border freight, customs clearance, cost estimation
+    """
+    try:
+        logger.info(
+            f"Trade calculation request: {request.origin_country} → "
+            f"{request.destination_country}, Value: R{request.value_zar:,.2f}"
+        )
+        
+        # Generate unique request ID
+        request_id = f"trade_{uuid.uuid4().hex[:12]}"
+        
+        # Optional: Verify supplier if registration provided
+        supplier_verified = False
+        if request.supplier_registration:
+            supplier_data = cipc_service.verify_company(request.supplier_registration)
+            if supplier_data and supplier_data.get('status') == 'In Business':
+                supplier_verified = True
+                logger.info(f"Supplier verified: {supplier_data.get('legal_name')}")
+            else:
+                logger.warning(f"Supplier not verified: {request.supplier_registration}")
+        
+        # Calculate trade compliance
+        calculations, compliance_req, warnings = trade_service.calculate_compliance(
+            item_description=request.item_description,
+            hs_code=request.hs_code,
+            value_zar=request.value_zar,
+            origin_country=request.origin_country,
+            destination_country=request.destination_country
+        )
+        
+        # Add warning if supplier not verified but registration was provided
+        if request.supplier_registration and not supplier_verified:
+            warnings.append(
+                f"Warning: Supplier registration {request.supplier_registration} "
+                f"could not be verified. Shipment may face delays."
+            )
+        
+        logger.info(f"Trade calculation successful: Request ID {request_id}")
+        
+        # Return response as dict
+        return {
+            "status": "success",
+            "transaction": request,
+            "calculations": calculations,
+            "compliance": compliance_req,
+            "warnings": warnings,
+            "calculated_at": datetime.now(),
+            "request_id": request_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Trade calculation error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Trade calculation failed: {str(e)}"
         )
 # For Vercel deployment
 handler = app
