@@ -1,6 +1,16 @@
 """
 Data models for AfriCompliance API
 """
+from .hs_code import (
+    HSCodeSection,
+    HSCodeSearchRequest,
+    HSCodeLookupRequest,
+    HSCodeDetails,
+    HSCodeSearchResponse,
+    HSCodeLookupResponse,
+    HSCodeCategoriesResponse,
+    HSCodeChapterResponse
+)
 
 from .common import (
     ResponseStatus,
@@ -47,4 +57,14 @@ __all__ = [
     "CalculationBreakdown",
     "ComplianceRequirement",
     "TradeComplianceResponse",
+
+    # HS Code
+    "HSCodeSection",
+    "HSCodeSearchRequest",
+    "HSCodeLookupRequest",
+    "HSCodeDetails",
+    "HSCodeSearchResponse",
+    "HSCodeLookupResponse",
+    "HSCodeCategoriesResponse",
+    "HSCodeChapterResponse",
 ]
