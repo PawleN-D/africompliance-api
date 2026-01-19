@@ -78,7 +78,6 @@ Deployed on Vercel: [Your Vercel URL]
 
 ## Roadmap
 
-- [ ] Real CIPC API integration
 - [ ] SARS VAT verification
 - [ ] PostgreSQL migration
 - [ ] Sanctions list integration
@@ -91,4 +90,4 @@ MIT
 
 ## Contact
 
-For pilot access or inquiries: [your-email@example.com]
+For pilot access or inquiries: [sirpawle@gmail.com]
