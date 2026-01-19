@@ -31,6 +31,7 @@ from api.models import (
 from api.services.cipc_service import CIPCService
 from api.services.risk_scoring import RiskScoringService
 from api.config import get_settings
+from api.routes import hs_codes_router, documents_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +46,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+# Include routers
+app.include_router(hs_codes_router)
+app.include_router(documents_router)
 
 # CORS configuration (allow all for MVP)
 app.add_middleware(
